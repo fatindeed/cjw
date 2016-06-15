@@ -1,0 +1,27 @@
+[base]
+application.directory = APP_PATH "application" DIRECTORY_SEPARATOR
+[prod:base]
+; 接口地址
+api.host = http://domain:port
+; 门店代码(商场提供)
+api.storecode = xxxx
+; 设备号(商场提供)
+api.devname = xxxx
+; 密码(商场提供)
+api.password = xxxx
+; 数据来源
+vendor.type = ftp
+vendor.server = x.x.x.x
+vendor.user = xxxx
+vendor.passwd = xxxx
+vendor.daily_dir = /path/to/dir/
+vendor.past_dir = /path/to/dir/
+vendor.save_dir = /path/to/dir/
+[dev:base]
+api.host = http://domain:port
+api.storecode = xxxx
+api.devname = xxxx
+api.password = xxxx
+vendor.type = local
+vendor.daily_dir = /path/to/dir/
+vendor.past_dir = /path/to/dir/

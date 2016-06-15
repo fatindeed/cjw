@@ -1,1 +1,3 @@
-app/conf/*
+app/conf/*.ini
+app/temp/*
+*.db

@@ -165,6 +165,11 @@ class DataVendor {
 			if($record['FPAYTYPE'] == 12) continue;
 			$real_amt = $record['FPAYAMT'] + $record['FTIPS'];
 			if($real_amt == 0) continue;
+			// Time Patch for stat match
+			// 01:23:45 will be saved as 06:01:23
+			if($record['FTIME'] >= '000000' && $record['FTIME'] < '060000') {
+				$record['FTIME'] = '06'.substr($record['FTIME'], 0, 4);
+			}
 			$flowno = Hex36::unpack($record['FTIME'], $record['FCHECK'], $record['FPAYTYPE']);
 			$trans = DAO::factory('Trans')->where_equal('flowno', $flowno)->find_one();
 			if($trans) {
