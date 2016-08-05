@@ -33,7 +33,6 @@ class DataVendor {
 		$this->vendor = Yaf_Registry::get('config')->vendor;
 		switch($this->vendor->type) {
 			case 'local':
-				# code...
 				break;
 			case 'ftp':
 				if(!is_dir($this->vendor->save_dir)) {
@@ -65,11 +64,14 @@ class DataVendor {
 	 *
 	 * @param string $month	归档月份，如为空则调用recent数据库
 	 */
-	public function init($month = null) {
+	public static function init($month = null) {
 		$connection_name = $month ? $month : ORM::DEFAULT_CONNECTION;
 		$database_file = $month ? $month : 'recent';
 		if(!ORM::get_config('connection_string', $connection_name)) {
 			$database = Yaf_Registry::get('config')->database;
+			if(!is_dir($database->directory)) {
+				mkdir($database->directory, 0777, true);
+			}
 			ORM::configure('sqlite:'.$database->directory.$database_file.'.db', null, $connection_name);
 			ORM::raw_execute('CREATE TABLE IF NOT EXISTS [trans] (
 				[id] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -88,7 +90,7 @@ class DataVendor {
 	 * @return array
 	 */
 	public function scanPastFiles($date) {
-		$dir = $this->vendor->past_dir.str_replace('-', '', $date).'/';
+		$dir = $this->vendor->past_dir.str_replace('-', '', $date).DIRECTORY_SEPARATOR;
 		$files = $this->find_pay_files($dir);
 		foreach($files as $file) {
 			$this->proc_pay_file($file);
@@ -102,7 +104,7 @@ class DataVendor {
 	 * @return array
 	 */
 	public function downloadPastFiles($date, $save_dir) {
-		$dir = $this->vendor->past_dir.str_replace('-', '', $date).'/';
+		$dir = $this->vendor->past_dir.str_replace('-', '', $date).DIRECTORY_SEPARATOR;
 		$files = $this->find_pay_files($dir);
 		foreach($files as $file) {
 			copy($file, $save_dir.$date.substr($file, -6));
@@ -148,7 +150,7 @@ class DataVendor {
 				}
 				break;
 			default:
-				throw new Exception('Unable to load vendor config');
+				throw new Exception('Invalid data vendor');
 		}
 		return $files;
 	}
@@ -159,13 +161,13 @@ class DataVendor {
 	 * @param string $file	数据库文件路径
 	 */
 	private function proc_pay_file($file) {
-		$records = Dbase::load($file);
+		$records = self::load_dbase($file);
 		foreach($records as $record) {
 			$record = array_map('trim', $record);
 			if($record['FPAYTYPE'] == 12) continue;
 			$real_amt = $record['FPAYAMT'] + $record['FTIPS'];
 			if($real_amt == 0) continue;
-			// Time Patch for stat match
+			// Time patch for stat
 			// 01:23:45 will be saved as 06:01:23
 			if($record['FTIME'] >= '000000' && $record['FTIME'] < '060000') {
 				$record['FTIME'] = '06'.substr($record['FTIME'], 0, 4);
@@ -189,6 +191,25 @@ class DataVendor {
 			$trans->status = 0;
 			$trans->save();
 		}
+	}
+
+	/**
+	 * 读取dbase数据库
+	 *
+	 * @param string $filename	数据库文件路径
+	 * @return array
+	 */
+	private static function load_dbase($filename) {
+		$results = array();
+		$db = dbase_open($filename, 0);
+		if(empty($db)) {
+			throw new Exception('db file ['.$filename.'] open failed');
+		}
+		$record_numbers = dbase_numrecords($db);
+		for($i = 1; $i <= $record_numbers; $i++) {
+			$results[] = dbase_get_record_with_names($db, $i);
+		}
+		return $results;
 	}
 
 }

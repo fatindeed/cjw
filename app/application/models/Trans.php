@@ -15,7 +15,7 @@ class TransModel extends Idiorm\DAO {
 		// 	throw new Exception('Invalid datetime.');
 		// }
 		if($this->is_dirty('realamt') && !filter_var($this->realamt, FILTER_VALIDATE_FLOAT)) {
-			throw new Exception('Invalid amount.');
+			throw new Exception('Invalid amount: '.$this->realamt);
 		}
 		return parent::save();
 	}

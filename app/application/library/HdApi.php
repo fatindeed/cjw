@@ -24,7 +24,7 @@ class HdApi {
 		if(empty($this->api->host)) {
 			throw new Exception('Unable to load api config');
 		}
-		$this->counter = 0;
+		$this->token = file_get_contents(TEMP_PATH.'token');
 	}
 
 	/**
@@ -46,15 +46,23 @@ class HdApi {
 	 * @param array $data		接口参数
 	 * @return string
 	 */
-	private function call_api($apiName, $data) {
-		$output = self::http_get($this->api->host.'/HDDataCenterSvr.dll/'.$apiName.'?'.http_build_query($data));
+	private function apiRequest($apiName, $data) {
+		$output = self::httpRequest($this->api->host.'/HDDataCenterSvr.dll/'.$apiName.'?'.http_build_query($data));
 		if(substr($output, 0, 3) != '[\\]') {
 			throw new Exception('Invalid API response: '.$output);
 		}
 		$str = str_replace("\n", '&', trim(substr($output, 3)));
 		parse_str($str, $response);
 		if($response['FRESULT'] != 0) {
-			throw new Exception($response['FMSG'], $response['FRESULT']);
+			// token expired
+			if($response['FRESULT'] == 1) {
+				unset($this->token);
+				$this->login();
+				$response = $this->apiRequest($apiName, $data);
+			}
+			else {
+				throw new Exception('API error: '.mb_convert_encoding($response['FMSG'], 'UTF-8', 'GBK'), $response['FRESULT']);
+			}
 		}
 		return $response;
 	}
@@ -63,7 +71,7 @@ class HdApi {
 	 * 接口登录获取密钥，密钥有效期24小时
 	 */
 	public function login() {
-		$response = $this->call_api('LSLogin', array(
+		$response = $this->apiRequest('LSLogin', array(
 			'STORECODE' => $this->api->storecode,
 			'LOGINNAME' => $this->api->devname,
 			'PASSWORD' => $this->api->password
@@ -72,6 +80,7 @@ class HdApi {
 			throw new Exception('Login Failed');
 		}
 		$this->token = $response['FDATA'];
+		file_put_contents(TEMP_PATH.'token', $this->token);
 	}
 
 	/**
@@ -81,16 +90,21 @@ class HdApi {
 	 * @param int $deleted	是否已删除
 	 */
 	public function uploadTrans($trans) {
+		if($trans->status == 1) return false;
+		if(floatval($trans->realamt) == 0) return false;
 		while(empty($this->token)) {
 			$this->login();
 		}
-		$response = $this->call_api('ILSUPLOADTRANS', array(
+		$response = $this->apiRequest('ILSUPLOADTRANS', array(
 			'SESSION' => $this->token,
 			'DEVNAME' => $this->api->devname,
 			'FLOWNO' => $trans->flowno,
 			'FILTIME' => $trans->filtime,
 			'REALAMT' => $trans->realamt,
 		));
+		$trans->status = 1;
+		$trans->save();
+		return true;
 	}
 
 	/**
@@ -99,7 +113,7 @@ class HdApi {
 	 * @param string $apiName	请求URL
 	 * @return string
 	 */
-	private static function http_get($url) {
+	private static function httpRequest($url) {
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_AUTOREFERER, true);
@@ -108,7 +122,7 @@ class HdApi {
 		$response = curl_exec($ch);
 		$errno = curl_errno($ch);
 		if($errno) {
-			throw new Exception('cURL error#'.$errno.': '.curl_error($ch).' while opening '.$url, $errno);
+			throw new Exception($url.' connect failed: '.curl_error($ch), $errno);
 		}
 		curl_close($ch);
 		return $response;

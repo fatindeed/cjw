@@ -1,6 +1,7 @@
-[base]
+[yaf]
 application.directory = APP_PATH "application" DIRECTORY_SEPARATOR
-[prod:base]
+database.directory = APP_PATH "database" DIRECTORY_SEPARATOR
+[product:yaf]
 ; 接口地址
 api.host = http://domain:port
 ; 门店代码(商场提供)
@@ -17,7 +18,7 @@ vendor.passwd = xxxx
 vendor.daily_dir = /path/to/dir/
 vendor.past_dir = /path/to/dir/
 vendor.save_dir = /path/to/dir/
-[dev:base]
+[develop:yaf]
 api.host = http://domain:port
 api.storecode = xxxx
 api.devname = xxxx

@@ -1,3 +1,4 @@
-app/conf/*.ini
-app/temp/*
-*.db
+# Ignore Mac DS_Store files
+app/conf/application.ini
+app/database/*
+app/log/*

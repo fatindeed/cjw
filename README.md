@@ -1,14 +1,19 @@
-# cjw
+# cjw财务软件
 
-调用新天地系统接口，将门店营业数据上传至服务器
+调用新天地数据接口，将门店营业数据上传至服务器
 
-php源码包需自行下载放至x64/x86目录
-
-以下扩展需自行下载放至ext目录
-* php_curl
-* php_dbase
-* php_pdo_sqlite
-* php_yaf
-
-Todos
-* 使用Docker代替php手动安装
+## Installation
+1. 安装**Docker Toolbox**
+2. 将代码克隆到用户主目录下
+3. 修改**Docker Toolbox**目录中的`start.sh`，加入以下代码：
+```sh
+runcjw () {
+  cd ~/cjw
+  docker-compose up -d
+}
+export -f runcjw
+```
+4. 复制`Docker Quickstart Terminal`的快捷方式到启动目录，并在目标最后加上`runcjw`，如下：
+```sh
+"C:\Program Files\Git\bin\bash.exe" --login -i "C:\Program Files\Docker Toolbox\start.sh" runcjw
+```

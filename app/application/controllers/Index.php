@@ -5,7 +5,6 @@ use Idiorm\DAO as DAO;
 class IndexController extends Yaf_Controller_Abstract {
 
 	public function indexAction() {
-		echo date('Y-m-d H:i:s')."\t";
 		// prepare database
 		$dataVendor = new DataVendor();
 		$today = date('Y-m-d');
@@ -17,14 +16,13 @@ class IndexController extends Yaf_Controller_Abstract {
 		$dataVendor->scanDailyFiles();
 		unset($dataVendor);
 		// upload
-		$counter = 0;
+		$count = 0;
 		$hdApi = new HdApi();
 		$transList = DAO::factory('Trans')->where_equal('status', '0')->find_many();
 		foreach($transList as $trans) {
-			$hdApi->uploadTrans($trans);
-			$trans->status = 1;
-			$trans->save();
-			$counter++;
+			if($hdApi->uploadTrans($trans)) {
+				$count++;
+			}
 		}
 		// optimize database
 		$transList = DAO::factory('Trans')->where_lt('filtime', str_replace('-', '', $this->getLastDay()).'000000')->where_equal('status', '1')->order_by_asc('filtime')->find_many();
@@ -38,24 +36,23 @@ class IndexController extends Yaf_Controller_Abstract {
 			$alt_trans->save();
 			$trans->delete();
 		}
-		echo 'ÈÎÎñÍê³É'.($counter > 0 ? '£¬±¾´ÎÉÏ´«'.$counter.'Ìõ½»Ò×¼ÇÂ¼' : '')."\r\n";
+		trigger_error('ä»»åŠ¡å®Œæˆ'.($count > 0 ? 'ï¼Œæœ¬æ¬¡ä¸Šä¼ '.$count.'æ¡äº¤æ˜“è®°å½•' : ''), E_USER_NOTICE);
 	}
 
 	public function statAction() {
-		do {
-			echo 'ÇëÊäÈëÄúÒªÍ³¼ÆµÄÔÂ·İ(¸ñÊ½£ºYYYYMM£¬ÊäÈë»Ø³µÍ³¼Æµ±ÔÂ'.date('Ym').'Êı¾İ)£º';
-			$month = trim(fgets(STDIN));
-			if(empty($month)) $month = date('Ym');
-			$filename = APP_PATH.'database'.DIRECTORY_SEPARATOR.$month.'.db';
-			if(file_exists($filename)) break;
-			echo 'ÔÂ·İ¸ñÊ½²»ÕıÈ·»ò¸ÃÔÂ·İÃ»ÓĞÊı¾İ'.PHP_EOL;
+		$args = $this->getRequest()->getParam('args');
+		if(!is_array($args) || count($args) == 0) {
+			$cmd = 'php '.implode(' ', $GLOBALS['argv']);
+			echo "usage: $cmd YYYYMM".PHP_EOL;
+			echo "   ie: $cmd ".date('Ym').PHP_EOL;
+			return false;
 		}
-		while(true);
-		$db = new SQLite3($filename);
-		$results = $db->query('SELECT substr(filtime, 1, 8) AS date, total(realamt) AS total FROM trans GROUP BY date;');
-		echo "ÈÕÆÚ\t\t½ğ¶î\n";
-		while($stat = $results->fetchArray(SQLITE3_ASSOC)) {
-			echo implode("\t", $stat)."\n";
+		$month = $args[0];
+		DataVendor::init($month);
+		$results = DAO::factory('Trans', $month)->raw_query('SELECT substr(filtime, 1, 8) AS date, total(realamt) AS total FROM trans GROUP BY date')->find_many();
+		echo "Date\t\tAmount\n";
+		foreach($results as $stat) {
+			echo $stat->date."\t".$stat->total."\n";
 		}
 	}
 
@@ -77,11 +74,11 @@ class IndexController extends Yaf_Controller_Abstract {
 		echo date('Y-m-d H:i:s')."\t";
 		// prepare database
 		if(!is_array($args) && count($args) == 0) {
-			throw new Exception('ÃüÁî²»ÕıÈ·¡£ÕıÈ·µÄÃüÁî¸ñÊ½£ºphp index.php fix '.date('Ymd'));
+			throw new Exception('å‘½ä»¤ä¸æ­£ç¡®ã€‚æ­£ç¡®çš„å‘½ä»¤æ ¼å¼ï¼šphp index.php fix '.date('Ymd'));
 		}
 		$date = $args[0];
 		if(strlen($date) != 8) {
-			throw new Exception('ÈÕÆÚ±ØĞëÎª8Î»Êı×Ö¡£ÕıÈ·µÄÃüÁî¸ñÊ½£ºphp index.php fix '.date('Ymd'));
+			throw new Exception('æ—¥æœŸå¿…é¡»ä¸º8ä½æ•°å­—ã€‚æ­£ç¡®çš„å‘½ä»¤æ ¼å¼ï¼šphp index.php fix '.date('Ymd'));
 		}
 		$dataVendor = new DataVendor();
 		$dataVendor->scanPastFiles($date);
@@ -102,7 +99,7 @@ class IndexController extends Yaf_Controller_Abstract {
 			$trans->save();
 			$counter++;
 		}
-		echo 'ÈÎÎñÍê³É'.($counter > 0 ? '£¬±¾´ÎÉÏ´«'.$counter.'Ìõ½»Ò×¼ÇÂ¼' : '')."\r\n";
+		echo 'ä»»åŠ¡å®Œæˆ'.($counter > 0 ? 'ï¼Œæœ¬æ¬¡ä¸Šä¼ '.$counter.'æ¡äº¤æ˜“è®°å½•' : '')."\r\n";
 	}
 
 	private function getLastDay() {
