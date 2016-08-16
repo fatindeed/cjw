@@ -9,7 +9,15 @@ try {
 
 	define('APP_PATH', __DIR__.DIRECTORY_SEPARATOR);
 	define('TEMP_PATH', '/tmp/');
+	define('LOG_DIR', '/var/log/cjw/');
+	define('DATA_DIR', '/var/lib/cjw/');
 
+	if(!is_dir(LOG_DIR)) {
+		mkdir(LOG_DIR, 0777, true);
+	}
+	if(!is_dir(DATA_DIR)) {
+		mkdir(DATA_DIR, 0777, true);
+	}
 	$app = new Yaf_Application(APP_PATH.'conf/application.ini');
 	$app->bootstrap() //call bootstrap methods defined in Bootstrap.php
 		->run();
@@ -21,8 +29,7 @@ catch(Exception $e) {
 function appErrorHandler($errno, $errstr) {
 	$message = date('Y-m-d H:i:s')."\t".$errstr."\r\n";
 	echo $message;
-	file_put_contents(APP_PATH.'log'.DIRECTORY_SEPARATOR.date('Ymd').'.txt', $message, FILE_APPEND);
-	// file_put_contents('/var/log/'.date('Ymd').'.txt', $message, FILE_APPEND);
+	file_put_contents(LOG_DIR.date('Ymd').'.txt', $message, FILE_APPEND);
 }
 
 ?>

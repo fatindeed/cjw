@@ -41,10 +41,10 @@ class Hex36 {
 	 */
 	public static function to10($str) {
 		$sum = 0;
-		$len = strlen($char);
+		$len = strlen($str);
 		for($i = 0; $i < $len; $i++){
-			$index = array_search(self::$char[$i], $array);
-			$sum += ($index+1) * pow(36, $len - $i - 1);
+			$index = array_search($str[$i], self::$charArr);
+			$sum += $index * pow(36, $len - $i - 1);
 		}
 		return $sum;  
 	}

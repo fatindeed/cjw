@@ -8,8 +8,15 @@
 3. 修改**Docker Toolbox**目录中的`start.sh`，加入以下代码：
 ```sh
 runcjw () {
-  cd ~/cjw
-  docker-compose up -d
+  pushd ~/cjw > /dev/null
+  result=0
+  while [ $result -eq 0 ]
+  do
+    docker-compose up -d
+    result=$(docker ps | grep dockerphpdev | wc -l)
+  done
+  popd > /dev/null
+  echo service started
 }
 export -f runcjw
 ```

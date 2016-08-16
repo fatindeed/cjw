@@ -12,14 +12,14 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
 		}
 		$config = Yaf_Application::app()->getConfig();
 		Yaf_Registry::set('config', $config);
-		DataVendor::init();
+		// DataVendor::init();
 		$dispatcher->autoRender(false);
 	}
 
 	protected function _initLocker(Yaf_Dispatcher $dispatcher) {
 		$appLocker = TEMP_PATH.'locker';
 		if(file_exists($appLocker) && time() - file_get_contents($appLocker) < 1800) {
-			throw new Exception('程序运行中，请稍后重试');
+			throw new RuntimeException('程序运行中，请稍后重试');
 		}
 		file_put_contents($appLocker, time());
 		register_shutdown_function(function() use($appLocker) {

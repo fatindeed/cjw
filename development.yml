@@ -1,0 +1,12 @@
+version: '2'
+services:
+  php:
+    volumes:
+      - ./app:/home/www-data
+    links:
+      - ftp
+  ftp:
+    build: ./build/ftp
+    volumes:
+      - ./var/data:/data/z01/pastdata
+    privileged: true

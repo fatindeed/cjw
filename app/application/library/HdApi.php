@@ -3,6 +3,11 @@
 class HdApi {
 
 	/**
+	 * @ignore
+	 */
+	private static $instance;
+
+	/**
 	 * API配置信息
 	 *
 	 * @ignore
@@ -19,12 +24,25 @@ class HdApi {
 	/**
 	 * @ignore
 	 */
-	public function __construct() {
+	private function __construct() {
 		$this->api = Yaf_Registry::get('config')->api;
 		if(empty($this->api->host)) {
-			throw new Exception('Unable to load api config');
+			throw new RuntimeException('Unable to load api config');
 		}
-		$this->token = file_get_contents(TEMP_PATH.'token');
+		$this->token = file_get_contents(TEMP_PATH.'token.key');
+		if(empty($this->token)) {
+			$this->login();
+		}
+	}
+
+	/**
+	 * 单例方法
+	 *
+	 * @return HdApi
+	 */
+	public static function getInstance() {
+		self::$instance || self::$instance = new HdApi();
+		return self::$instance;
 	}
 
 	/**
@@ -44,24 +62,23 @@ class HdApi {
 	 *
 	 * @param string $apiName	接口名
 	 * @param array $data		接口参数
-	 * @return string
+	 * @return array
 	 */
 	private function apiRequest($apiName, $data) {
 		$output = self::httpRequest($this->api->host.'/HDDataCenterSvr.dll/'.$apiName.'?'.http_build_query($data));
 		if(substr($output, 0, 3) != '[\\]') {
-			throw new Exception('Invalid API response: '.$output);
+			throw new RuntimeException('Invalid API response: '.$output);
 		}
 		$str = str_replace("\n", '&', trim(substr($output, 3)));
 		parse_str($str, $response);
 		if($response['FRESULT'] != 0) {
 			// token expired
 			if($response['FRESULT'] == 1) {
-				unset($this->token);
 				$this->login();
 				$response = $this->apiRequest($apiName, $data);
 			}
 			else {
-				throw new Exception('API error: '.mb_convert_encoding($response['FMSG'], 'UTF-8', 'GBK'), $response['FRESULT']);
+				throw new RuntimeException('API error: '.mb_convert_encoding($response['FMSG'], 'UTF-8', 'GBK'), $response['FRESULT']);
 			}
 		}
 		return $response;
@@ -71,40 +88,34 @@ class HdApi {
 	 * 接口登录获取密钥，密钥有效期24小时
 	 */
 	public function login() {
+		unset($this->token);
 		$response = $this->apiRequest('LSLogin', array(
 			'STORECODE' => $this->api->storecode,
 			'LOGINNAME' => $this->api->devname,
 			'PASSWORD' => $this->api->password
 		));
 		if($response['FDATA'] == 0) {
-			throw new Exception('Login Failed');
+			throw new RuntimeException('Login Failed');
 		}
 		$this->token = $response['FDATA'];
-		file_put_contents(TEMP_PATH.'token', $this->token);
+		file_put_contents(TEMP_PATH.'token.key', $this->token);
 	}
 
 	/**
 	 * 商户交易数据上传
 	 *
-	 * @param object $trans	交易数据
-	 * @param int $deleted	是否已删除
+	 * @param string $flowno	交易流水
+	 * @param string $filtime	交易发生时间
+	 * @param float $realamt	交易金额（实收金额，退货时，金额为负）
 	 */
-	public function uploadTrans($trans) {
-		if($trans->status == 1) return false;
-		if(floatval($trans->realamt) == 0) return false;
-		while(empty($this->token)) {
-			$this->login();
-		}
-		$response = $this->apiRequest('ILSUPLOADTRANS', array(
+	public function uploadTrans($flowno, $filtime, $realamt) {
+		$this->apiRequest('ILSUPLOADTRANS', array(
 			'SESSION' => $this->token,
 			'DEVNAME' => $this->api->devname,
-			'FLOWNO' => $trans->flowno,
-			'FILTIME' => $trans->filtime,
-			'REALAMT' => $trans->realamt,
+			'FLOWNO' => $flowno,
+			'FILTIME' => $filtime,
+			'REALAMT' => $realamt,
 		));
-		$trans->status = 1;
-		$trans->save();
-		return true;
 	}
 
 	/**
@@ -122,7 +133,7 @@ class HdApi {
 		$response = curl_exec($ch);
 		$errno = curl_errno($ch);
 		if($errno) {
-			throw new Exception($url.' connect failed: '.curl_error($ch), $errno);
+			throw new RuntimeException(curl_error($ch).' ['.$url.']', $errno);
 		}
 		curl_close($ch);
 		return $response;

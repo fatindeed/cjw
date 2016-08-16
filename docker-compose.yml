@@ -1,6 +1,8 @@
 version: '2'
 services:
   php:
-    build: ./build
+    build: ./build/php
     volumes:
-      - ./app:/home/www-data
+      - ./var/database:/var/lib/cjw
+      - ./var/log:/var/log/cjw
+      - ./var/application.ini:/home/www-data/conf/application.ini

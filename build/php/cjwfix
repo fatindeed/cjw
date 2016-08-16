@@ -1,0 +1,2 @@
+#!/bin/sh
+php /home/www-data/index.php fix $1

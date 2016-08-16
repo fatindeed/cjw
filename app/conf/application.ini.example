@@ -1,6 +1,5 @@
 [yaf]
 application.directory = APP_PATH "application" DIRECTORY_SEPARATOR
-database.directory = APP_PATH "database" DIRECTORY_SEPARATOR
 [product:yaf]
 ; 接口地址
 api.host = http://domain:port
@@ -11,18 +10,17 @@ api.devname = xxxx
 ; 密码(商场提供)
 api.password = xxxx
 ; 数据来源
-vendor.type = ftp
+vendor.adapter = FtpDataAdapter
 vendor.server = x.x.x.x
 vendor.user = xxxx
 vendor.passwd = xxxx
 vendor.daily_dir = /path/to/dir/
 vendor.past_dir = /path/to/dir/
-vendor.save_dir = /path/to/dir/
 [develop:yaf]
 api.host = http://domain:port
 api.storecode = xxxx
 api.devname = xxxx
 api.password = xxxx
-vendor.type = local
+vendor.adapter = FileDataAdapter
 vendor.daily_dir = /path/to/dir/
 vendor.past_dir = /path/to/dir/
