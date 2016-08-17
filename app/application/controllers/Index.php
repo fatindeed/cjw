@@ -72,12 +72,13 @@ class IndexController extends Yaf_Controller_Abstract {
 		$month = $args[0];
 		$transDao = TransDao::getInstance($month);
 		$dataArr = $transDao->find(array('select_expr' => 'substr(filtime, 1, 8) AS date, total(realamt) AS total', 'group_expr' => 'date'), PDO::FETCH_ASSOC);
-		echo "Date\t\tAmount\n";
+		$content = "Date\t\tAmount\n";
 		if(is_array($dataArr) && count($dataArr) > 0) {
 			foreach($dataArr as $data) {
-				echo $data['date']."\t".$data['total']."\n";
+				$content .= $data['date']."\t".$data['total']."\n";
 			}
 		}
+		echo $content;
 	}
 
 	private function getLastDay($timestamp = false) {
