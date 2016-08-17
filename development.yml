@@ -1,8 +1,11 @@
 version: '2'
 services:
   php:
+    build: ./build/php
     volumes:
       - ./app:/home/www-data:ro
+    environment:
+      APP_ENV: develop
     links:
       - ftp
   ftp:

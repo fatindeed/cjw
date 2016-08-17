@@ -12,7 +12,6 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
 		}
 		$config = Yaf_Application::app()->getConfig();
 		Yaf_Registry::set('config', $config);
-		// DataVendor::init();
 		$dispatcher->autoRender(false);
 	}
 

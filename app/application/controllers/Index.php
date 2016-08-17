@@ -53,7 +53,7 @@ class IndexController extends Yaf_Controller_Abstract {
 		}
 		$date = $args[0];
 		$this->process($date, true);
-		// call from self::check()
+		// skip exit when called by self::check()
 		if(isset($args[1]) && $args[1] === true) {
 			return true;
 		}
@@ -133,6 +133,7 @@ class IndexController extends Yaf_Controller_Abstract {
 				$trans->save();
 			}
 		}
+		// 归档数据处理
 		if($checkMode) {
 			$archiveDao = TransDao::getInstance(substr($date, 0, 6));
 			$archiveArr = $archiveDao->find(array(':fildate' => $date));
@@ -140,6 +141,7 @@ class IndexController extends Yaf_Controller_Abstract {
 				$trans = $transDao->get(array(':flowno' => $archive->flowno));
 				if($trans) {
 					$trans->status = TransModel::STATUS_UPLOADED;
+					$trans->save();
 				}
 				else {
 					$archive->status = TransModel::STATUS_UPLOADED;

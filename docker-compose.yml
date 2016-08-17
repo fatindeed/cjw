@@ -1,6 +1,8 @@
 version: '2'
 services:
   php:
-    build: ./build/php
+    image: fatindeed/cjw
     volumes:
       - ./var:/var/cjw
+    environment:
+      APP_ENV: product

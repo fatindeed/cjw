@@ -18,7 +18,7 @@ try {
 	if(!is_dir(LOG_DIR)) {
 		mkdir(LOG_DIR, 0777, true);
 	}
-	$app = new Yaf_Application('/var/cjw/application.ini');
+	$app = new Yaf_Application('/var/cjw/application.ini', getenv('APP_ENV'));
 	$app->bootstrap() //call bootstrap methods defined in Bootstrap.php
 		->run();
 }
