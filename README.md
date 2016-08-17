@@ -4,7 +4,7 @@
 
 ## Installation
 1. 安装**Docker Toolbox**
-2. 将代码克隆到用户主目录下
+2. 根据app/conf/application.ini.example修改为正确的application.ini，放在var目录下
 3. 修改**Docker Toolbox**目录中的`start.sh`，加入以下代码：
 ```sh
 runapp () {
@@ -22,7 +22,7 @@ runapp () {
 }
 export -f runapp
 ```
-4. 复制`Docker Quickstart Terminal`的快捷方式到启动目录，并在目标最后加上`runcjw`，如下：
+4. 复制`Docker Quickstart Terminal`的快捷方式到启动目录，并在目标最后加上`runapp cjw`，如下：
 ```sh
 "C:\Program Files\Git\bin\bash.exe" --login -i "C:\Program Files\Docker Toolbox\start.sh" runapp cjw
 ```
