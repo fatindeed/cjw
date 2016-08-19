@@ -10,6 +10,15 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
 		if($GLOBALS['argc'] >= 3) {
 			$request->setParam('args', array_slice($GLOBALS['argv'], 2));
 		}
+		$path = '/var/cjw/'.Yaf_Application::app()->environ();
+		define('DATA_DIR', $path.'/database/');
+		define('LOG_DIR', $path.'/log/');
+		if(!is_dir(DATA_DIR)) {
+			mkdir(DATA_DIR, 0777, true);
+		}
+		if(!is_dir(LOG_DIR)) {
+			mkdir(LOG_DIR, 0777, true);
+		}
 		$config = Yaf_Application::app()->getConfig();
 		Yaf_Registry::set('config', $config);
 		$dispatcher->autoRender(false);

@@ -46,7 +46,6 @@ class TransModel {
 
 	const STATUS_NEW = 0;
 	const STATUS_UPLOADED = 1;
-	const STATUS_CHECKED = 2;
 
 	/**
 	 * @param string $connId	归档月份，如为空则调用recent数据库
@@ -85,7 +84,7 @@ class TransModel {
 	 * @return null
 	 */
 	public function delete() {
-		$transDao = TransDao::getInstance();
+		$transDao = TransDao::getInstance($this->connId);
 		return $transDao->delete(array(':id' => $this->id));
 	}
 

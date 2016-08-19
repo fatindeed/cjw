@@ -4,8 +4,7 @@ services:
     build: ./build/php
     volumes:
       - ./app:/home/www-data:ro
-    environment:
-      APP_ENV: develop
+      - ./var/yaf.ini:/usr/local/etc/php/conf.d/yaf.ini:ro
     links:
       - ftp
   ftp:

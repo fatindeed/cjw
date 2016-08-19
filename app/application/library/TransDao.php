@@ -15,6 +15,11 @@ class TransDao {
 	private static $instances = array();
 
 	/**
+	 * @ignore
+	 */
+	private $connId;
+
+	/**
 	 * dbh实例
 	 *
 	 * @ignore
@@ -33,6 +38,7 @@ class TransDao {
 	 * @return TransDao
 	 */
 	private function __construct($connId = 'recent') {
+		$this->connId = $connId;
 		$ddl = false;
 		$filename = DATA_DIR.$connId.'.db';
 		$ddl = !file_exists($filename);
@@ -147,7 +153,7 @@ class TransDao {
 		$sth = $this->dbh->prepare($sql);
 		$sth->execute($params);
 		if($fetch_argument == PDO::FETCH_CLASS) {
-			return $sth->fetchAll(PDO::FETCH_CLASS, 'TransModel');
+			return $sth->fetchAll(PDO::FETCH_CLASS, 'TransModel', array($this->connId));
 		}
 		else {
 			return $sth->fetchAll($fetch_argument);
