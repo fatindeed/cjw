@@ -10,5 +10,5 @@ services:
   ftp:
     build: ./build/ftp
     volumes:
-      - ./var/data:/data/z01/pastdata:ro
+      - ./var/data:/u/z01/pastdata:ro
     privileged: true

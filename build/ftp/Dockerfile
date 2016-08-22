@@ -1,15 +1,13 @@
 FROM alpine
 
-MAINTAINER James Zhu <fatindeed@gmail.com>
-
 RUN apk add --no-cache vsftpd \
  && { \
-   echo "anon_root=/data"; \
+   echo "local_enable=YES"; \
    echo "seccomp_sandbox=NO"; \
  } >> /etc/vsftpd/vsftpd.conf \
- && mkdir /data \
+ && echo "root:123456" | chpasswd \
  && rm -rf /var/cache/apk/*
 
-EXPOSE 21
+EXPOSE 20 21
 
 CMD ["vsftpd", "/etc/vsftpd/vsftpd.conf"]

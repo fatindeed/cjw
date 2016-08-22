@@ -1,7 +1,5 @@
 FROM php:5-alpine
 
-MAINTAINER James Zhu <fatindeed@gmail.com>
-
 WORKDIR /home/www-data
 
 # Add files
