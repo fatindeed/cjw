@@ -36,6 +36,7 @@ class FtpDataAdapter extends DataAdapter {
 		if(!$result) {
 			throw new RuntimeException('FTP login failed');
 		}
+		ftp_pasv($this->ftp, true);
 	}
 
 	/**
